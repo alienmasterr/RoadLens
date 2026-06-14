@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct RoadLensApp: App {
@@ -13,5 +14,6 @@ struct RoadLensApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: [SignModel.self, QuestionModel.self])
     }
 }

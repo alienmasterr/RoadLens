@@ -9,6 +9,7 @@ import Foundation
 import CoreML
 import Vision
 import AVFoundation
+import SwiftData
 internal import Combine
 
 class CameraViewModel: ObservableObject {
@@ -16,6 +17,11 @@ class CameraViewModel: ObservableObject {
     
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
+    
+    var modelContext: ModelContext?
+    private var lastSavedLabel: String?
+    private var lastSavedTime: Date = Date.distantPast
+    private let saveCooldown: TimeInterval = 5.0
 
     private var mlModel: RoadSignDetector?
 
