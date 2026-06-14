@@ -5,19 +5,22 @@
 //  Created by alina on 08.06.2026.
 //
 
-import Foundation
-import CoreML
-import Vision
 import AVFoundation
 internal import Combine
+import CoreImage
+import CoreML
+import Foundation
+import Vision
 
 class CameraViewModel: ObservableObject {
-    var objectWillChange: ObservableObjectPublisher = ObservableObjectPublisher()
-    
+    var objectWillChange: ObservableObjectPublisher =
+        ObservableObjectPublisher()
+
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
 
     private var mlModel: RoadSignDetector?
+    private let ciContext = CIContext()
 
     init() {
         setupModel()
@@ -35,8 +38,19 @@ class CameraViewModel: ObservableObject {
     func classify(pixelBuffer: CVPixelBuffer) {
         guard let mlModel else { return }
 
+        guard
+            let resized = resizePixelBuffer(
+                pixelBuffer,
+                width: 640,
+                height: 640
+            )
+        else {
+            print("Не вдалося змінити розмір зображення")
+            return
+        }
+
         do {
-            let output = try mlModel.prediction(image: pixelBuffer)
+            let output = try mlModel.prediction(image: resized)
             let result = parseYOLOOutput(output.var_909)
 
             DispatchQueue.main.async {
@@ -57,7 +71,7 @@ class CameraViewModel: ObservableObject {
         "Заборонний знак",
         "Знак небезпеки",
         "Обов'язковий знак",
-        "Інший знак"
+        "Інший знак",
     ]
 
     private struct Detection {
@@ -83,5 +97,38 @@ class CameraViewModel: ObservableObject {
             }
         }
         return best
+    }
+
+    private func resizePixelBuffer(
+        _ pixelBuffer: CVPixelBuffer,
+        width: Int,
+        height: Int
+    ) -> CVPixelBuffer? {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let scaleX =
+            CGFloat(width) / CGFloat(CVPixelBufferGetWidth(pixelBuffer))
+        let scaleY =
+            CGFloat(height) / CGFloat(CVPixelBufferGetHeight(pixelBuffer))
+        let scaled = ciImage.transformed(
+            by: CGAffineTransform(scaleX: scaleX, y: scaleY)
+        )
+
+        var output: CVPixelBuffer?
+        let attrs: [CFString: Any] = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true,
+        ]
+        CVPixelBufferCreate(
+            nil,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            attrs as CFDictionary,
+            &output
+        )
+
+        guard let out = output else { return nil }
+        ciContext.render(scaled, to: out)
+        return out
     }
 }
