@@ -16,7 +16,6 @@ struct CameraView: View {
                     CameraRepresentable(viewModel: viewModel)
                         .ignoresSafeArea()
 
-                    // Результат розпізнавання
                     VStack(spacing: 4) {
                         Text(viewModel.detectedLabel)
                             .font(.headline)
