@@ -13,13 +13,14 @@ import Foundation
 import Vision
 
 class CameraViewModel: ObservableObject {
-//    var objectWillChange: ObservableObjectPublisher =
-//        ObservableObjectPublisher()
+    //    var objectWillChange: ObservableObjectPublisher =
+    //        ObservableObjectPublisher()
 
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
 
-    private var mlModel: RoadSignDetector?
+    //private var mlModel: RoadSignDetector?
+    private var mlModel: AllSigns?
     private let ciContext = CIContext()
     private var frameCounter = 0
 
@@ -30,7 +31,8 @@ class CameraViewModel: ObservableObject {
     private func setupModel() {
         do {
             let config = MLModelConfiguration()
-            mlModel = try RoadSignDetector(configuration: config)
+            //mlModel = try RoadSignDetector(configuration: config)
+            mlModel = try AllSigns(configuration: config)
         } catch {
             print("Помилка завантаження моделі: \(error)")
         }
@@ -38,7 +40,7 @@ class CameraViewModel: ObservableObject {
 
     func classify(pixelBuffer: CVPixelBuffer) {
         guard let mlModel else { return }
-        
+
         frameCounter += 1
         guard frameCounter % 10 == 0 else { return }
 
@@ -55,7 +57,7 @@ class CameraViewModel: ObservableObject {
 
         do {
             let output = try mlModel.prediction(image: resized)
-            let result = parseYOLOOutput(output.var_909)
+            let result = parseYOLOOutput(output.var_910)
 
             DispatchQueue.main.async {
                 if let result {
@@ -71,11 +73,56 @@ class CameraViewModel: ObservableObject {
         }
     }
 
+    //    private let classNames: [String] = [
+    //        "Заборонний знак",
+    //        "Знак небезпеки",
+    //        "Обов'язковий знак",
+    //        "Інший знак",
+    //    ]
     private let classNames: [String] = [
-        "Заборонний знак",
-        "Знак небезпеки",
-        "Обов'язковий знак",
-        "Інший знак",
+        "Обмеження швидкості (20 км/год)",
+        "Обмеження швидкості (30 км/год)",
+        "Обмеження швидкості (50 км/год)",
+        "Обмеження швидкості (60 км/год)",
+        "Обмеження швидкості (70 км/год)",
+        "Обмеження швидкості (80 км/год)",
+        "Кінець обмеження швидкості (80 км/год)",
+        "Обмеження швидкості (100 км/год)",
+        "Обмеження швидкості (120 км/год)",
+        "Обгін заборонено",
+        "Обгін заборонено для вантажівок",
+        "Пріоритет на наступному перехресті",
+        "Головна дорога",
+        "Поступіться дорогою",
+        "Стоп",
+        "Рух заборонено",
+        "Вантажівки заборонено",
+        "Вʼїзд заборонено",
+        "Загальна небезпека",
+        "Небезпечний поворот ліворуч",
+        "Небезпечний поворот праворуч",
+        "Подвійний поворот",
+        "Нерівна дорога",
+        "Слизька дорога",
+        "Звуження дороги праворуч",
+        "Дорожні роботи",
+        "Світлофор",
+        "Пішоходи",
+        "Діти",
+        "Велосипедисти",
+        "Ожеледиця / сніг",
+        "Дикі тварини",
+        "Кінець усіх обмежень",
+        "Поворот праворуч",
+        "Поворот ліворуч",
+        "Прямо",
+        "Прямо або праворуч",
+        "Прямо або ліворуч",
+        "Тримайтеся праворуч",
+        "Тримайтеся ліворуч",
+        "Круговий рух",
+        "Кінець заборони обгону",
+        "Кінець заборони обгону для вантажівок",
     ]
 
     private struct Detection {
@@ -115,8 +162,10 @@ class CameraViewModel: ObservableObject {
             }
             print("  Загальний макс: \(String(format: "%.4f", bestConf))")
         }
-        
-        print("bestLabel=\(String(describing: bestLabel)), bestConf=\(bestConf)")
+
+        print(
+            "bestLabel=\(String(describing: bestLabel)), bestConf=\(bestConf)"
+        )
 
         //guard bestConf > 0.3, let label = bestLabel else { return nil }
         guard let label = bestLabel else { return nil }

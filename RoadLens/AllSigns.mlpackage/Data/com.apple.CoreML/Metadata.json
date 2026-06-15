@@ -1,0 +1,22 @@
+{
+  "MLModelVersionStringKey" : "8.4.67",
+  "MLModelDescriptionKey" : "Ultralytics best model trained on data.yaml",
+  "MLModelCreatorDefinedKey" : {
+    "batch" : "1",
+    "docs" : "https:\/\/docs.ultralytics.com",
+    "com.github.apple.coremltools.version" : "9.0",
+    "imgsz" : "[640, 640]",
+    "names" : "{0: 'Speed_limit_(20km\/h)', 1: 'Speed_limit_(30km\/h)', 2: 'Speed_limit_(50km\/h)', 3: 'Speed_limit_(60km\/h)', 4: 'Speed_limit_(70km\/h)', 5: 'Speed_limit_(80km\/h)', 6: 'End_of_speed_limit_(80km\/h)', 7: 'Speed_limit_(100km\/h)', 8: 'Speed_limit_(120km\/h)', 9: 'No_passing', 10: 'No_passing_for_vehicles_over_3.5_metric_tons', 11: 'Right-of-way_at_the_next_intersection', 12: 'Priority_road', 13: 'Yield', 14: 'Stop', 15: 'No_vehicles', 16: 'Vehicles_over_3.5_metric_tons_prohibited', 17: 'No_entry', 18: 'General_caution', 19: 'Dangerous_curve_to_the_left', 20: 'Dangerous_curve_to_the_right', 21: 'Double_curve', 22: 'Bumpy_road', 23: 'Slippery_road', 24: 'Road_narrows_on_the_right', 25: 'Road_work', 26: 'Traffic_signals', 27: 'Pedestrians', 28: 'Children_crossing', 29: 'Bicycles_crossing', 30: 'Beware_of_ice\/snow', 31: 'Wild_animals_crossing', 32: 'End_of_all_speed_and_passing_limits', 33: 'Turn_right_ahead', 34: 'Turn_left_ahead', 35: 'Ahead_only', 36: 'Go_straight_or_right', 37: 'Go_straight_or_left', 38: 'Keep_right', 39: 'Keep_left', 40: 'Roundabout_mandatory', 41: 'End_of_no_passing', 42: 'End_of_no_passing_by_vehicles_over_3.5_metric_tons'}",
+    "com.github.apple.coremltools.conversion_date" : "2026-06-14",
+    "channels" : "3",
+    "date" : "2026-06-14T23:21:22.412177",
+    "stride" : "32",
+    "args" : "{'batch': 1, 'half': False, 'int8': False, 'dynamic': False, 'nms': False}",
+    "com.github.apple.coremltools.source_dialect" : "TorchScript",
+    "com.github.apple.coremltools.source" : "torch==2.10.0+cu128",
+    "task" : "detect",
+    "end2end" : "False"
+  },
+  "MLModelAuthorKey" : "Ultralytics",
+  "MLModelLicenseKey" : "AGPL-3.0 License (https:\/\/ultralytics.com\/license)"
+}
