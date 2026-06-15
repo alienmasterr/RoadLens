@@ -13,14 +13,15 @@ import Foundation
 import Vision
 
 class CameraViewModel: ObservableObject {
-    var objectWillChange: ObservableObjectPublisher =
-        ObservableObjectPublisher()
+//    var objectWillChange: ObservableObjectPublisher =
+//        ObservableObjectPublisher()
 
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
 
     private var mlModel: RoadSignDetector?
     private let ciContext = CIContext()
+    private var frameCounter = 0
 
     init() {
         setupModel()
@@ -37,6 +38,9 @@ class CameraViewModel: ObservableObject {
 
     func classify(pixelBuffer: CVPixelBuffer) {
         guard let mlModel else { return }
+        
+        frameCounter += 1
+        guard frameCounter % 10 == 0 else { return }
 
         guard
             let resized = resizePixelBuffer(
@@ -83,20 +87,40 @@ class CameraViewModel: ObservableObject {
         let numClasses = classNames.count
         let numBoxes = 8400
 
-        var best: Detection? = nil
-        var bestConf: Float = 0.4
+        var bestLabel: String? = nil
+        var bestConf: Float = 0.3
+
+        var maxConfPerClass = [Float](repeating: 0, count: numClasses)
 
         for i in 0..<numBoxes {
             for c in 0..<numClasses {
-                let idx = (4 + c) * numBoxes + i
+                let idx = [0, (4 + c), i] as [NSNumber]
                 let conf = output[idx].floatValue
+                if conf > maxConfPerClass[c] {
+                    maxConfPerClass[c] = conf
+                }
                 if conf > bestConf {
                     bestConf = conf
-                    best = Detection(label: classNames[c], confidence: conf)
+                    bestLabel = classNames[c]
                 }
             }
         }
-        return best
+
+        if Int.random(in: 0..<30) == 0 {
+            print("Макс confidence по класах:")
+            for (i, name) in classNames.enumerated() {
+                print(
+                    "  \(name): \(String(format: "%.4f", maxConfPerClass[i]))"
+                )
+            }
+            print("  Загальний макс: \(String(format: "%.4f", bestConf))")
+        }
+        
+        print("bestLabel=\(String(describing: bestLabel)), bestConf=\(bestConf)")
+
+        //guard bestConf > 0.3, let label = bestLabel else { return nil }
+        guard let label = bestLabel else { return nil }
+        return Detection(label: label, confidence: bestConf)
     }
 
     private func resizePixelBuffer(

@@ -10,9 +10,22 @@
 		C71357EA2FD586E00007CBE7 /* RoadLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RoadLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C70A86192FE005C700546D25 /* Exceptions for "RoadLens" folder in "RoadLens" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				PythonScript/notebook4dcae72a8e.ipynb,
+			);
+			target = C71357E92FD586E00007CBE7 /* RoadLens */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C71357EC2FD586E00007CBE7 /* RoadLens */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C70A86192FE005C700546D25 /* Exceptions for "RoadLens" folder in "RoadLens" target */,
+			);
 			path = RoadLens;
 			sourceTree = "<group>";
 		};
