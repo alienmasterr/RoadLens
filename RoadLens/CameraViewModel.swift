@@ -20,7 +20,10 @@ class CameraViewModel: ObservableObject {
     @Published var confidence: Float = 0.0
 
     //private var mlModel: RoadSignDetector?
-    private var mlModel: AllSigns?
+   // private var mlModel: AllSigns?
+    private var mlModel: signsNewModel?
+
+    
     private let ciContext = CIContext()
     private var frameCounter = 0
 
@@ -32,7 +35,9 @@ class CameraViewModel: ObservableObject {
         do {
             let config = MLModelConfiguration()
             //mlModel = try RoadSignDetector(configuration: config)
-            mlModel = try AllSigns(configuration: config)
+          //  mlModel = try AllSigns(configuration: config)
+            mlModel = try signsNewModel(configuration: config)
+
         } catch {
             print("Помилка завантаження моделі: \(error)")
         }
@@ -79,6 +84,8 @@ class CameraViewModel: ObservableObject {
     //        "Обов'язковий знак",
     //        "Інший знак",
     //    ]
+    
+    //43
     private let classNames: [String] = [
         "Обмеження швидкості (20 км/год)",
         "Обмеження швидкості (30 км/год)",
