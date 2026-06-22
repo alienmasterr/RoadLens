@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C7BF9F012FE93E2B00167F5A /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = C7BF9F002FE93E2B00167F5A /* ZIPFoundation */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		C71357EA2FD586E00007CBE7 /* RoadLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RoadLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7BF9F012FE93E2B00167F5A /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = RoadLens;
 			packageProductDependencies = (
+				C7BF9F002FE93E2B00167F5A /* ZIPFoundation */,
 			);
 			productName = RoadLens;
 			productReference = C71357EA2FD586E00007CBE7 /* RoadLens.app */;
@@ -107,6 +113,10 @@
 			);
 			mainGroup = C71357E12FD586DF0007CBE7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C7BF9EFC2FE92BB800167F5A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C7BF9EFF2FE93E2B00167F5A /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C71357EB2FD586E00007CBE7 /* Products */;
 			projectDirPath = "";
@@ -280,7 +290,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = naukmaSwift.RoadLens;
+				PRODUCT_BUNDLE_IDENTIFIER = naukmaSwift.RoadLensAlinaVova23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -313,7 +323,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = naukmaSwift.RoadLens;
+				PRODUCT_BUNDLE_IDENTIFIER = naukmaSwift.RoadLensAlinaVova23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -347,6 +357,33 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C7BF9EFC2FE92BB800167F5A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.15.0;
+			};
+		};
+		C7BF9EFF2FE93E2B00167F5A /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.20;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C7BF9F002FE93E2B00167F5A /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C7BF9EFF2FE93E2B00167F5A /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C71357E22FD586E00007CBE7 /* Project object */;
 }
