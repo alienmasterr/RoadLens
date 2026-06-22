@@ -7,6 +7,8 @@ struct TestSessionView: View {
     @Query private var allQuestions: [QuestionModel]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var generativeVM: GenerativeViewModel
+    @Query private var signs: [SignModel]
     
     @State private var currentQuestionIndex = 0
     @State private var selectedOption: Int? = nil
@@ -21,12 +23,38 @@ struct TestSessionView: View {
         VStack {
             if questions.isEmpty {
                 VStack(spacing: 20) {
-                    Text("Для цієї теми ще немає питань.")
+                    Text("Для цієї теми ще немає питань")
                         .font(.headline)
-                    Button("Додати демонстраційні питання") {
-                        seedSampleData()
+                        
+                    if generativeVM.isGenerating {
+                        ProgressView("генеруєм питання")
+                    } else {
+                        Button("Згенерувати тест") {
+                            generativeVM.generateQuestion(for: topic)
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
+                    
+                    if let error = generativeVM.errorMessage {
+                        Text(error)
+                            .foregroundStyle(.red)
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .onChange(of: generativeVM.isGenerating) { oldValue, newValue in
+                    if !newValue && !generativeVM.generatedQuestion.isEmpty {
+                        let correctIndex = generativeVM.generatedOptions.firstIndex(of: generativeVM.correctAnswer) ?? 0
+                        let newQuestion = QuestionModel(
+                            topic: topic,
+                            text: generativeVM.generatedQuestion,
+                            options: generativeVM.generatedOptions,
+                            correctOptionIndex: correctIndex
+                        )
+                        modelContext.insert(newQuestion)
+                        generativeVM.generatedQuestion = ""
+                    }
                 }
             } else if isFinished {
                 VStack(spacing: 30) {
@@ -45,6 +73,16 @@ struct TestSessionView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
+                    
+                    if generativeVM.isGenerating {
+                        ProgressView("ШІ генерує")
+                    } else {
+                        Button("Згенерувати ще одне питання") {
+                            generativeVM.generateQuestion(for: topic)
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.top, 10)
+                    }
                 }
             } else {
                 let currentQuestion = questions[currentQuestionIndex]
@@ -118,6 +156,22 @@ struct TestSessionView: View {
         }
         .navigationTitle(topic)
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: generativeVM.isGenerating) { oldValue, newValue in
+            if !newValue && !generativeVM.generatedQuestion.isEmpty {
+                let correctIndex = generativeVM.generatedOptions.firstIndex(of: generativeVM.correctAnswer) ?? 0
+                let newQuestion = QuestionModel(
+                    topic: topic,
+                    text: generativeVM.generatedQuestion,
+                    options: generativeVM.generatedOptions,
+                    correctOptionIndex: correctIndex
+                )
+                modelContext.insert(newQuestion)
+                generativeVM.generatedQuestion = ""
+                if isFinished {
+                    isFinished = false
+                }
+            }
+        }
     }
     
     private func buttonBorderColor(for index: Int) -> Color {
@@ -146,33 +200,17 @@ struct TestSessionView: View {
     
     private func nextQuestion() {
         withAnimation {
-            if currentQuestionIndex + 1 < questions.count {
+            if currentQuestionIndex < questions.count - 1 {
                 currentQuestionIndex += 1
                 selectedOption = nil
             } else {
                 isFinished = true
+                if score == questions.count {
+                    if let signToUpdate = signs.first(where: { $0.classOfSign == topic }) {
+                        signToUpdate.isTestPassed = true
+                    }
+                }
             }
-        }
-    }
-    
-    private func seedSampleData() {
-        let sampleQuestions = [
-            QuestionModel(topic: "Заборонні знаки", 
-                          text: "Що означає знак 'Рух заборонено'?", 
-                          options: ["Забороняє рух усіх транспортних засобів", "Забороняє в'їзд", "Забороняє зупинку"], 
-                          correctOptionIndex: 0),
-            QuestionModel(topic: "Заборонні знаки", 
-                          text: "Чи дозволено рух під знак 'Цегла' (В'їзд заборонено) маршрутним таксі?", 
-                          options: ["Так", "Ні", "Тільки за спеціальним дозволом"], 
-                          correctOptionIndex: 1),
-            QuestionModel(topic: "Знак небезпеки", 
-                          text: "Яка дистанція має бути між авто під знак 'Обмеження дистанції'?", 
-                          options: ["Не менше вказаної", "Не більше вказаної", "Рівно 50 метрів"], 
-                          correctOptionIndex: 0)
-        ]
-        
-        for q in sampleQuestions {
-            modelContext.insert(q)
         }
     }
 }
