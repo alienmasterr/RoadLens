@@ -28,7 +28,8 @@ class CameraViewModel: ObservableObject {
 
     //private var mlModel: RoadSignDetector?
    // private var mlModel: AllSigns?
-    private var mlModel: signsNewModel?
+    //private var mlModel: signsNewModel?
+    private var mlModel: FinalYolo?
 
     
     private let ciContext = CIContext()
@@ -43,7 +44,9 @@ class CameraViewModel: ObservableObject {
             let config = MLModelConfiguration()
             //mlModel = try RoadSignDetector(configuration: config)
           //  mlModel = try AllSigns(configuration: config)
-            mlModel = try signsNewModel(configuration: config)
+          //  mlModel = try signsNewModel(configuration: config)
+            mlModel = try FinalYolo(configuration: config)
+
 
         } catch {
             print("Помилка завантаження моделі: \(error)")
@@ -54,7 +57,7 @@ class CameraViewModel: ObservableObject {
         guard let mlModel else { return }
 
         frameCounter += 1
-        guard frameCounter % 10 == 0 else { return }
+        guard frameCounter % 15 == 0 else { return }
 
         guard
             let resized = resizePixelBuffer(
