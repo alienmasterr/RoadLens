@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct RoadLensApp: App {
@@ -24,5 +25,6 @@ struct RoadLensApp: App {
                     downloader.downloadIfNeeded()
                 }
         }
+        .modelContainer(for: [SignModel.self, QuestionModel.self])
     }
 }
