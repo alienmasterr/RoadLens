@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CameraView: View {
-    
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = CameraViewModel()
 
     var body: some View {
@@ -26,12 +27,42 @@ struct CameraView: View {
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.8))
                         }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .padding(.bottom, 40)
+            
+            if let sign = viewModel.signToConfirm {
+                VStack(spacing: 12) {
+                    Text(sign)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                    
+                    HStack(spacing: 20) {
+                        Button("Пропустити") {
+                            viewModel.cancelSaveSign()
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        
+                        Button("Додати") {
+                            viewModel.confirmSaveSign()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                    .padding(.bottom, 40)
                 }
+                .padding()
+                .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.bottom, 120)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(), value: viewModel.signToConfirm)
+        .onAppear {
+            viewModel.modelContext = modelContext
+        }
     }
 }
 

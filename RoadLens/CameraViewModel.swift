@@ -19,6 +19,7 @@ class CameraViewModel: ObservableObject {
 
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
+    @Published var signToConfirm: String? = nil
     
     var modelContext: ModelContext?
     private var lastSavedLabel: String?
@@ -74,6 +75,7 @@ class CameraViewModel: ObservableObject {
                 if let result {
                     self.detectedLabel = result.label
                     self.confidence = result.confidence
+                    self.promptSaveSignIfNeeded(label: result.label, confidence: result.confidence)
                 } else {
                     self.detectedLabel = "Знаків не розпізнано"
                     self.confidence = 0
@@ -217,5 +219,47 @@ class CameraViewModel: ObservableObject {
         ciContext.render(scaled, to: out)
         return out
     }
-}
 
+    private func promptSaveSignIfNeeded(label: String, confidence: Float) {
+        guard confidence > 0.6 else { return }
+        guard signToConfirm == nil else { return }
+        guard let context = modelContext else { return }
+        
+        do {
+            let descriptor = FetchDescriptor<SignModel>(predicate: #Predicate { $0.classOfSign == label })
+            let count = try context.fetchCount(descriptor)
+            if count > 0 {
+                return
+            }
+        } catch {
+            print("\(error)")
+        }
+        
+        let now = Date()
+        
+        if now.timeIntervalSince(lastSavedTime) > saveCooldown || label != lastSavedLabel {
+            self.signToConfirm = label
+        }
+    }
+
+    func confirmSaveSign() {
+        guard let label = signToConfirm, let context = modelContext else { return }
+        
+        let newSign = SignModel(classOfSign: label)
+        context.insert(newSign)
+        
+        lastSavedTime = Date()
+        lastSavedLabel = label
+        signToConfirm = nil
+        
+        print(" збережено : \(label)")
+    }
+    
+    func cancelSaveSign() {
+        if let label = signToConfirm {
+            lastSavedTime = Date()
+            lastSavedLabel = label
+        }
+        signToConfirm = nil
+    }
+}
