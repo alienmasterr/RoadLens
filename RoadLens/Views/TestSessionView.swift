@@ -23,8 +23,32 @@ struct TestSessionView: View {
         VStack {
             if questions.isEmpty {
                 VStack(spacing: 20) {
-                    Text("ця тема ще не вивчена")
-                        .font(.headline)
+                    if generativeVM.isGeneratingExplanation {
+                        VStack {
+                            ProgressView()
+                            Text("телефон думає що вам сказати про цей знак")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if !generativeVM.signExplanation.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Про знак:")
+                                .font(.headline)
+                            Text(generativeVM.signExplanation)
+                                .font(.body)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.primary.opacity(0.3), lineWidth: 2)
+                        )
+                        .padding(.horizontal)
+                    } else {
+                        Text("Інформація про знак")
+                            .font(.headline)
+                    }
                         
                     if generativeVM.isGenerating {
                         VStack {
@@ -39,7 +63,7 @@ struct TestSessionView: View {
                             Button {
                                 generativeVM.generateQuestion(for: topic)
                             } label: {
-                                Text("Згенерувати")
+                                Text("Згенерувати тестове")
                                     .font(.headline)
                                     .padding()
                                     .frame(maxWidth: .infinity)
@@ -54,7 +78,7 @@ struct TestSessionView: View {
                             Button {
                                 generativeVM.generateFromDataset(for: topic)
                             } label: {
-                                Text("Взяти наявні")
+                                Text("Взяти існуюче тестове питання")
                                     .font(.headline)
                                     .padding()
                                     .frame(maxWidth: .infinity)
@@ -207,6 +231,11 @@ struct TestSessionView: View {
         }
         .navigationTitle(topic)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            if questions.isEmpty {
+                generativeVM.generateSignExplanation(for: topic)
+            }
+        }
         .onChange(of: generativeVM.isGenerating) { oldValue, newValue in
             if !newValue && !generativeVM.generatedQuestion.isEmpty {
                 let correctIndex = generativeVM.generatedOptions.firstIndex(of: generativeVM.correctAnswer) ?? 0

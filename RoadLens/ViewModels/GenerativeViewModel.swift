@@ -14,7 +14,9 @@ class GenerativeViewModel: ObservableObject {
     @Published var generatedOptions: [String] = []
     @Published var correctAnswer: String = ""
     @Published var explanation: String = ""
+    @Published var signExplanation: String = ""
     @Published var isGenerating: Bool = false
+    @Published var isGeneratingExplanation: Bool = false
     @Published var errorMessage: String? = nil
 
     private var mlModel: MLModel?
@@ -60,16 +62,57 @@ class GenerativeViewModel: ObservableObject {
 //        print("модель вивантажена")
     }
 
+    func generateSignExplanation(for signLabel: String) {
+        guard signExplanation.isEmpty else { return }
+        isGeneratingExplanation = true
+        signExplanation = ""
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let model: MLModel
+                if let existing = self.mlModel {
+                    model = existing
+                } else if let url = self.downloader.compiledModelURL {
+                    let config = MLModelConfiguration()
+                    config.computeUnits = .cpuAndNeuralEngine
+                    model = try MLModel(contentsOf: url, configuration: config)
+                    DispatchQueue.main.async { self.mlModel = model }
+                } else {
+                    throw NSError(domain: "", code: 0, userInfo: nil)
+                }
+                
+                guard let tok = self.tokenizer, !tok.isEmpty else {
+                    throw NSError(domain: "", code: 0, userInfo: nil)
+                }
+                
+                let engine = LLMEngine(model: model, tokenizer: tok)
+                let prompt = "Знак: \(signLabel)\n<|completion|>\n"
+                let result = try engine.generate(prompt: prompt, maxNewTokens: 150)
+                
+                let raw = result.replacingOccurrences(of: "<|completion|>", with: "")
+                let finalExplanation = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                DispatchQueue.main.async {
+                    self.signExplanation = finalExplanation
+                    self.isGeneratingExplanation = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.signExplanation = "Пояснення від локальної моделі недоступне (завантажте модель)."
+                    self.isGeneratingExplanation = false
+                }
+            }
+        }
+    }
+
     func generateQuestion(for signLabel: String) {
         isGenerating = true
         errorMessage = nil
 
         Task {
             do {
-                // 1. Отримуємо тест через Gemini API
                 let geminiResult = try await GeminiService.generateTest(for: signLabel)
                 
-                // 2. Отримуємо пояснення через локальну модель
                 var localExplanation = ""
                 
                 do {
@@ -87,7 +130,6 @@ class GenerativeViewModel: ObservableObject {
                     
                     if let tok = self.tokenizer, !tok.isEmpty {
                         let engine = LLMEngine(model: model, tokenizer: tok)
-                        // Промпт саме на генерацію пояснення (тексту)
                         let prompt = "Знак: \(signLabel)\n<|completion|>\n"
                         let result = try engine.generate(prompt: prompt, maxNewTokens: 150)
                         
@@ -102,8 +144,6 @@ class GenerativeViewModel: ObservableObject {
                     self.generatedQuestion = geminiResult.question
                     self.generatedOptions = geminiResult.options
                     self.correctAnswer = geminiResult.correctAnswer
-                    
-                    // Об'єднуємо: питання від Gemini, пояснення від локальної моделі (якщо є)
                     self.explanation = localExplanation.isEmpty ? geminiResult.explanation : localExplanation
                     self.isGenerating = false
                 }

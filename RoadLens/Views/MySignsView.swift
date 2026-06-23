@@ -18,7 +18,17 @@ struct MySignsView: View {
         NavigationStack {
             List {
                 if signs.isEmpty {
-                    ContentUnavailableView("Немає розпізнаних знаків", systemImage: "magnifyingglass", description: Text("Розпізнані знаки з'являться тут після використання камери"))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Немає розпізнаних знаків")
+                            .font(.headline)
+                        Text("Розпізнані знаки з'являться тут після використання камери.")
+                            .font(.body)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.clear)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16))
                 } else {
                     Section("Історія розпізнавань") {
                         ForEach(signs) { sign in
