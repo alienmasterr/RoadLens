@@ -33,15 +33,15 @@ struct TestsView: View {
                 ForEach(uniqueTopics, id: \.self) { topic in
                     NavigationLink(destination: TestSessionView(topic: topic)) {
                         HStack {
-                            Image(systemName: "doc.questionmark")
-                                .foregroundColor(.blue)
                             Text(topic)
                                 .font(.body)
                         }
+                        .padding(.vertical, 8)
                     }
                 }
             }
-            .navigationTitle("Тести")
+            .listStyle(.plain)
+            .navigationTitle("Всі теми")
         }
     }
 }

@@ -8,6 +8,7 @@ final class QuestionModel {
     var text: String
     var options: [String]
     var correctOptionIndex: Int
+    var createdAt: Date = Date()
     
     init(topic: String, text: String, options: [String], correctOptionIndex: Int) {
         self.id = UUID()

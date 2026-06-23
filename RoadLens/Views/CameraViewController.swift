@@ -14,30 +14,37 @@ class CameraViewController: UIViewController, AVCaptureVideoDataOutputSampleBuff
 
     private let session = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    private let sessionQueue = DispatchQueue(label: "sessionQueue")
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupCamera()
+        sessionQueue.async { [weak self] in
+            self?.setupCamera()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        DispatchQueue.global(qos: .background).async {
-            self.session.startRunning()
+        sessionQueue.async { [weak self] in
+            self?.session.startRunning()
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        session.stopRunning()
+        sessionQueue.async { [weak self] in
+            self?.session.stopRunning()
+        }
     }
 
     private func setupCamera() {
+        session.beginConfiguration()
         session.sessionPreset = .high
 
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else {
             print("Камера недоступна на симуляторі")
+            session.commitConfiguration()
             return
         }
 
@@ -52,12 +59,17 @@ class CameraViewController: UIViewController, AVCaptureVideoDataOutputSampleBuff
         if session.canAddOutput(output) {
             session.addOutput(output)
         }
+        
+        session.commitConfiguration()
 
-        let preview = AVCaptureVideoPreviewLayer(session: session)
-        preview.videoGravity = .resizeAspectFill
-        preview.frame = view.bounds
-        view.layer.insertSublayer(preview, at: 0)
-        previewLayer = preview
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let preview = AVCaptureVideoPreviewLayer(session: self.session)
+            preview.videoGravity = .resizeAspectFill
+            preview.frame = self.view.bounds
+            self.view.layer.insertSublayer(preview, at: 0)
+            self.previewLayer = preview
+        }
     }
 
     override func viewDidLayoutSubviews() {

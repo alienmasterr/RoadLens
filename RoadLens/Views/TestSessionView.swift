@@ -4,7 +4,7 @@ import SwiftData
 struct TestSessionView: View {
     let topic: String
     
-    @Query private var allQuestions: [QuestionModel]
+    @Query(sort: \QuestionModel.createdAt) private var allQuestions: [QuestionModel]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var generativeVM: GenerativeViewModel
@@ -56,19 +56,6 @@ struct TestSessionView: View {
                             .padding(.horizontal)
                     }
                 }
-                .onChange(of: generativeVM.isGenerating) { oldValue, newValue in
-                    if !newValue && !generativeVM.generatedQuestion.isEmpty {
-                        let correctIndex = generativeVM.generatedOptions.firstIndex(of: generativeVM.correctAnswer) ?? 0
-                        let newQuestion = QuestionModel(
-                            topic: topic,
-                            text: generativeVM.generatedQuestion,
-                            options: generativeVM.generatedOptions,
-                            correctOptionIndex: correctIndex
-                        )
-                        modelContext.insert(newQuestion)
-                        generativeVM.generatedQuestion = ""
-                    }
-                }
             } else if isFinished {
                 VStack(spacing: 30) {
                     Text("Тест завершено")
@@ -93,7 +80,7 @@ struct TestSessionView: View {
                         .padding(.top, 10)
                     } else {
                         HStack(spacing: 12) {
-                            Button("ШІ-генерація") {
+                            Button("генерація питання") {
                                 generativeVM.generateQuestion(for: topic)
                             }
                             .buttonStyle(.bordered)
@@ -106,7 +93,7 @@ struct TestSessionView: View {
                         .padding(.top, 10)
                     }
                 }
-            } else {
+            } else if currentQuestionIndex < questions.count {
                 let currentQuestion = questions[currentQuestionIndex]
                 
                 VStack(alignment: .leading, spacing: 20) {
@@ -137,7 +124,7 @@ struct TestSessionView: View {
                                     Spacer()
                                 }
                                 .padding()
-                                .background(buttonBackgroundColor(for: index).cornerRadius(12))
+                                .background(RoundedRectangle(cornerRadius: 12).fill(buttonBackgroundColor(for: index)))
                                 .foregroundStyle(buttonForegroundColor(for: index))
                             }
                             .disabled(selectedOption != nil)
@@ -161,6 +148,15 @@ struct TestSessionView: View {
                     }
                 }
                 .padding()
+            } else {
+                VStack {
+                    ProgressView()
+                    Text("Оновлення")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationTitle(topic)
@@ -176,8 +172,14 @@ struct TestSessionView: View {
                 )
                 modelContext.insert(newQuestion)
                 generativeVM.generatedQuestion = ""
+                
                 if isFinished {
                     isFinished = false
+                    currentQuestionIndex = questions.count
+                    selectedOption = nil
+                } else if questions.isEmpty {
+                    currentQuestionIndex = 0
+                    selectedOption = nil
                 }
             }
         }
