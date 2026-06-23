@@ -19,11 +19,16 @@ class GenerativeViewModel: ObservableObject {
 
     private var mlModel: MLModel?
     private let downloader: ModelDownloader
-    private let tokenizer: BPETokenizer
+    private var tokenizer: BPETokenizer?
 
     init(downloader: ModelDownloader) {
         self.downloader = downloader
-        self.tokenizer = BPETokenizer()
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let t = BPETokenizer()
+            DispatchQueue.main.async {
+                self?.tokenizer = t
+            }
+        }
     }
 
     func loadModel() {
@@ -39,7 +44,7 @@ class GenerativeViewModel: ObservableObject {
                 let model = try MLModel(contentsOf: url, configuration: config)
                 DispatchQueue.main.async {
                     self.mlModel = model
-                    print("Генеративна модель завантажена")
+//                    print("модель завантажена")
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -52,10 +57,66 @@ class GenerativeViewModel: ObservableObject {
 
     func unloadModel() {
         mlModel = nil
-        print("Генеративна модель вивантажена")
+//        print("модель вивантажена")
     }
 
     func generateQuestion(for signLabel: String) {
+        isGenerating = true
+        errorMessage = nil
+
+        Task {
+            do {
+                // 1. Отримуємо тест через Gemini API
+                let geminiResult = try await GeminiService.generateTest(for: signLabel)
+                
+                // 2. Отримуємо пояснення через локальну модель
+                var localExplanation = ""
+                
+                do {
+                    let model: MLModel
+                    if let existing = self.mlModel {
+                        model = existing
+                    } else if let url = self.downloader.compiledModelURL {
+                        let config = MLModelConfiguration()
+                        config.computeUnits = .cpuAndNeuralEngine
+                        model = try MLModel(contentsOf: url, configuration: config)
+                        DispatchQueue.main.async { self.mlModel = model }
+                    } else {
+                        throw NSError(domain: "", code: 0, userInfo: nil)
+                    }
+                    
+                    if let tok = self.tokenizer, !tok.isEmpty {
+                        let engine = LLMEngine(model: model, tokenizer: tok)
+                        // Промпт саме на генерацію пояснення (тексту)
+                        let prompt = "Знак: \(signLabel)\n<|completion|>\n"
+                        let result = try engine.generate(prompt: prompt, maxNewTokens: 150)
+                        
+                        let raw = result.replacingOccurrences(of: "<|completion|>", with: "")
+                        localExplanation = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                } catch {
+                    print("Локальна модель недоступна або помилка: \(error)")
+                }
+                
+                DispatchQueue.main.async {
+                    self.generatedQuestion = geminiResult.question
+                    self.generatedOptions = geminiResult.options
+                    self.correctAnswer = geminiResult.correctAnswer
+                    
+                    // Об'єднуємо: питання від Gemini, пояснення від локальної моделі (якщо є)
+                    self.explanation = localExplanation.isEmpty ? geminiResult.explanation : localExplanation
+                    self.isGenerating = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = "\(error.localizedDescription)"
+                    self.isGenerating = false
+                }
+            }
+        }
+    }
+
+    func generateQuestionLocal(for signLabel: String) {
         isGenerating = true
         errorMessage = nil
 
@@ -77,11 +138,11 @@ class GenerativeViewModel: ObservableObject {
                     }
                 }
 
-                if self.tokenizer.isEmpty {
-                    throw NSError(domain: "GenerativeModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Токенізатор не знайдено. Додайте vocab.json та merges.txt у Xcode."])
+                guard let tok = self.tokenizer, !tok.isEmpty else {
+                    throw NSError(domain: "GenerativeModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Токенізатор ще завантажується або не знайдено."])
                 }
 
-                let engine = LLMEngine(model: model, tokenizer: self.tokenizer)
+                let engine = LLMEngine(model: model, tokenizer: tok)
                 let prompt = "Знак: \(signLabel)\n<|completion|>\nQUESTION: "
                 
                 let result = try engine.generate(prompt: prompt, maxNewTokens: 400)
@@ -97,6 +158,29 @@ class GenerativeViewModel: ObservableObject {
             } catch {
                 DispatchQueue.main.async {
                     self.errorMessage = "\(error.localizedDescription)"
+                    self.isGenerating = false
+                }
+            }
+        }
+    }
+
+    func generateQuestionGemini(for signLabel: String) {
+        isGenerating = true
+        errorMessage = nil
+
+        Task {
+            do {
+                let geminiResult = try await GeminiService.generateTest(for: signLabel)
+                DispatchQueue.main.async {
+                    self.generatedQuestion = geminiResult.question
+                    self.generatedOptions = geminiResult.options
+                    self.correctAnswer = geminiResult.correctAnswer
+                    self.explanation = geminiResult.explanation
+                    self.isGenerating = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = "API : \(error.localizedDescription)"
                     self.isGenerating = false
                 }
             }
