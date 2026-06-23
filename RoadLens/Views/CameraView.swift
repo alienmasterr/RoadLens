@@ -17,6 +17,20 @@ struct CameraView: View {
                     CameraRepresentable(viewModel: viewModel)
                         .ignoresSafeArea()
 
+                    if viewModel.isModelLoading {
+                        VStack {
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(.white)
+                            Text("у моделі нема цілі, тільки шлях")
+                                .foregroundStyle(.white)
+                                .padding(.top, 8)
+                        }
+                        .padding(24)
+                        .background(.black.opacity(0.8), in: RoundedRectangle(cornerRadius: 16))
+                        .frame(maxHeight: .infinity, alignment: .center)
+                    }
+
                     VStack(spacing: 4) {
                         Text(viewModel.detectedLabel)
                             .font(.headline)

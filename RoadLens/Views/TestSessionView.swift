@@ -23,16 +23,29 @@ struct TestSessionView: View {
         VStack {
             if questions.isEmpty {
                 VStack(spacing: 20) {
-                    Text("Для цієї теми ще немає питань")
+                    Text("ця тема ще не вивчена")
                         .font(.headline)
                         
                     if generativeVM.isGenerating {
-                        ProgressView("генеруєм питання")
-                    } else {
-                        Button("Згенерувати тест") {
-                            generativeVM.generateQuestion(for: topic)
+                        VStack {
+                            ProgressView()
+                            Text("генеруємо питання")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
                         }
-                        .buttonStyle(.borderedProminent)
+                    } else {
+                        VStack(spacing: 12) {
+                            Button("згенерувати") {
+                                generativeVM.generateQuestion(for: topic)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("взяти наявні") {
+                                generativeVM.generateFromDataset(for: topic)
+                            }
+                            .buttonStyle(.bordered)
+                        }
                     }
                     
                     if let error = generativeVM.errorMessage {
@@ -58,11 +71,7 @@ struct TestSessionView: View {
                 }
             } else if isFinished {
                 VStack(spacing: 30) {
-                    Image(systemName: "trophy.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(.yellow)
-                    
-                    Text("Тест завершено!")
+                    Text("Тест завершено")
                         .font(.largeTitle.bold())
                     
                     Text("Ваш результат: \(score) з \(questions.count)")
@@ -75,12 +84,25 @@ struct TestSessionView: View {
                     .controlSize(.large)
                     
                     if generativeVM.isGenerating {
-                        ProgressView("ШІ генерує")
-                    } else {
-                        Button("Згенерувати ще одне питання") {
-                            generativeVM.generateQuestion(for: topic)
+                        VStack {
+                            ProgressView()
+                            Text("генеруємо")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        .buttonStyle(.bordered)
+                        .padding(.top, 10)
+                    } else {
+                        HStack(spacing: 12) {
+                            Button("ШІ-генерація") {
+                                generativeVM.generateQuestion(for: topic)
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            Button("З бази даних") {
+                                generativeVM.generateFromDataset(for: topic)
+                            }
+                            .buttonStyle(.bordered)
+                        }
                         .padding(.top, 10)
                     }
                 }
@@ -113,23 +135,10 @@ struct TestSessionView: View {
                                     Text(currentQuestion.options[index])
                                         .multilineTextAlignment(.leading)
                                     Spacer()
-                                    if let selected = selectedOption {
-                                        if index == currentQuestion.correctOptionIndex {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(.green)
-                                        } else if index == selected {
-                                            Image(systemName: "x.circle.fill")
-                                                .foregroundStyle(.red)
-                                        }
-                                    }
                                 }
                                 .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(buttonBorderColor(for: index), lineWidth: 2)
-                                        .background(buttonBackgroundColor(for: index).cornerRadius(12))
-                                )
-                                .foregroundStyle(.primary)
+                                .background(buttonBackgroundColor(for: index).cornerRadius(12))
+                                .foregroundStyle(buttonForegroundColor(for: index))
                             }
                             .disabled(selectedOption != nil)
                         }
@@ -174,8 +183,8 @@ struct TestSessionView: View {
         }
     }
     
-    private func buttonBorderColor(for index: Int) -> Color {
-        guard let selected = selectedOption else { return Color.gray.opacity(0.3) }
+    private func buttonBackgroundColor(for index: Int) -> Color {
+        guard let selected = selectedOption else { return Color.gray.opacity(0.1) }
         let question = questions[currentQuestionIndex]
         
         if index == question.correctOptionIndex {
@@ -183,19 +192,17 @@ struct TestSessionView: View {
         } else if index == selected {
             return .red
         }
-        return Color.gray.opacity(0.3)
+        return Color.gray.opacity(0.1)
     }
     
-    private func buttonBackgroundColor(for index: Int) -> Color {
-        guard let selected = selectedOption else { return Color.clear }
+    private func buttonForegroundColor(for index: Int) -> Color {
+        guard let selected = selectedOption else { return .primary }
         let question = questions[currentQuestionIndex]
         
-        if index == question.correctOptionIndex {
-            return .green.opacity(0.1)
-        } else if index == selected {
-            return .red.opacity(0.1)
+        if index == question.correctOptionIndex || index == selected {
+            return .white
         }
-        return Color.clear
+        return .primary
     }
     
     private func nextQuestion() {

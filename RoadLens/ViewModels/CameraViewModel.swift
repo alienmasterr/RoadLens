@@ -20,6 +20,7 @@ class CameraViewModel: ObservableObject {
     @Published var detectedLabel: String = "Знаків не розпізнано"
     @Published var confidence: Float = 0.0
     @Published var signToConfirm: String? = nil
+    @Published var isModelLoading: Bool = true
     
     var modelContext: ModelContext?
     private var lastSavedLabel: String?
@@ -40,16 +41,20 @@ class CameraViewModel: ObservableObject {
     }
 
     private func setupModel() {
-        do {
-            let config = MLModelConfiguration()
-            //mlModel = try RoadSignDetector(configuration: config)
-          //  mlModel = try AllSigns(configuration: config)
-          //  mlModel = try signsNewModel(configuration: config)
-            mlModel = try FinalYolo(configuration: config)
-
-
-        } catch {
-            print("Помилка завантаження моделі: \(error)")
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let config = MLModelConfiguration()
+                let model = try FinalYolo(configuration: config)
+                DispatchQueue.main.async {
+                    self.mlModel = model
+                    self.isModelLoading = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    print("Помилка завантаження моделі: \(error)")
+                    self.isModelLoading = false
+                }
+            }
         }
     }
 

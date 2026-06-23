@@ -103,6 +103,47 @@ class GenerativeViewModel: ObservableObject {
         }
     }
 
+    func generateFromDataset(for signLabel: String) {
+        isGenerating = true
+        errorMessage = nil
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let url = Bundle.main.url(forResource: "dataset", withExtension: "json"),
+                  let content = try? String(contentsOf: url, encoding: .utf8) else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Не знайдено dataset.json в проєкті"
+                    self.isGenerating = false
+                }
+                return
+            }
+
+            let lines = content.components(separatedBy: .newlines).filter { !$0.isEmpty }
+            let matchingLines = lines.filter { $0.contains(signLabel) }
+            let selectedLine = matchingLines.randomElement() ?? lines.randomElement()
+            
+            guard let line = selectedLine,
+                  let data = line.data(using: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let completionStr = json["completion"] as? String,
+                  let completionData = completionStr.data(using: .utf8),
+                  let compJson = try? JSONSerialization.jsonObject(with: completionData) as? [String: Any] else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Помилка читання БД"
+                    self.isGenerating = false
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.generatedQuestion = compJson["question"] as? String ?? ""
+                self.generatedOptions = compJson["options"] as? [String] ?? []
+                self.correctAnswer = compJson["correct_answer"] as? String ?? ""
+                self.explanation = compJson["explanation"] as? String ?? ""
+                self.isGenerating = false
+            }
+        }
+    }
+
     private struct ParsedQuestion {
         let question: String
         let options: [String]
