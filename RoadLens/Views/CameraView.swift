@@ -58,13 +58,23 @@ struct CameraView: View {
                             viewModel.cancelSaveSign()
                         }
                         .buttonStyle(.bordered)
-                        .tint(.red)
+                        .tint(.clear)
+                        .foregroundStyle(.primary)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                        )
                         
                         Button("Додати") {
                             viewModel.confirmSaveSign()
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
+                        .buttonStyle(.bordered)
+                        .tint(.clear)
+                        .foregroundStyle(.primary)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                        )
                     }
                 }
                 .padding()

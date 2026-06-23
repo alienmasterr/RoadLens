@@ -11,6 +11,7 @@ import SwiftData
 struct MySignsView: View {
     
     @Query(sort: \SignModel.timestamp, order: .reverse) var signs: [SignModel]
+    @Query var allQuestions: [QuestionModel]
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
@@ -48,7 +49,14 @@ struct MySignsView: View {
     
     private func deleteSigns(offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(signs[index])
+            let signToDelete = signs[index]
+            let topic = signToDelete.classOfSign
+            
+            for question in allQuestions where question.topic == topic {
+                modelContext.delete(question)
+            }
+            
+            modelContext.delete(signToDelete)
         }
     }
 }

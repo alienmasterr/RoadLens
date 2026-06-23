@@ -69,10 +69,10 @@ struct DownloadProgressView: View {
 
     var stateText: String {
         switch downloader.state {
-        case .downloading: return "Завантаження моделі..."
-        case .unzipping: return "Розпакування..."
-        case .compiling: return "Підготовка моделі..."
-        default: return "Зачекайте..."
+        case .downloading: return "Завантаження моделі"
+        case .unzipping: return "Розпакування"
+        case .compiling: return "Підготовка моделі"
+        default: return "Зачекайте"
         }
     }
 }

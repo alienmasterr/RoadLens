@@ -36,16 +36,37 @@ struct TestSessionView: View {
                         }
                     } else {
                         VStack(spacing: 12) {
-                            Button("згенерувати") {
+                            Button {
                                 generativeVM.generateQuestion(for: topic)
+                            } label: {
+                                Text("Згенерувати")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.primary.opacity(0.3), lineWidth: 2)
+                                    )
+                                    .foregroundStyle(.primary)
                             }
-                            .buttonStyle(.borderedProminent)
                             
-                            Button("взяти наявні") {
+                            Button {
                                 generativeVM.generateFromDataset(for: topic)
+                            } label: {
+                                Text("Взяти наявні")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.primary.opacity(0.3), lineWidth: 2)
+                                    )
+                                    .foregroundStyle(.primary)
                             }
-                            .buttonStyle(.bordered)
                         }
+                        .padding(.horizontal)
                     }
                     
                     if let error = generativeVM.errorMessage {
@@ -79,17 +100,38 @@ struct TestSessionView: View {
                         }
                         .padding(.top, 10)
                     } else {
-                        HStack(spacing: 12) {
-                            Button("генерація питання") {
+                        VStack(spacing: 12) {
+                            Button {
                                 generativeVM.generateQuestion(for: topic)
+                            } label: {
+                                Text("згенерувати питання")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.primary.opacity(0.3), lineWidth: 2)
+                                    )
+                                    .foregroundStyle(.primary)
                             }
-                            .buttonStyle(.bordered)
                             
-                            Button("З бази даних") {
+                            Button {
                                 generativeVM.generateFromDataset(for: topic)
+                            } label: {
+                                Text("взяти існуюче")
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.clear)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.primary.opacity(0.3), lineWidth: 2)
+                                    )
+                                    .foregroundStyle(.primary)
                             }
-                            .buttonStyle(.bordered)
                         }
+                        .padding(.horizontal)
                         .padding(.top, 10)
                     }
                 }
@@ -124,7 +166,11 @@ struct TestSessionView: View {
                                     Spacer()
                                 }
                                 .padding()
-                                .background(RoundedRectangle(cornerRadius: 12).fill(buttonBackgroundColor(for: index)))
+                                .background(Color.clear)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(buttonBorderColor(for: index), lineWidth: 2)
+                                )
                                 .foregroundStyle(buttonForegroundColor(for: index))
                             }
                             .disabled(selectedOption != nil)
@@ -185,8 +231,8 @@ struct TestSessionView: View {
         }
     }
     
-    private func buttonBackgroundColor(for index: Int) -> Color {
-        guard let selected = selectedOption else { return Color.gray.opacity(0.1) }
+    private func buttonBorderColor(for index: Int) -> Color {
+        guard let selected = selectedOption else { return Color.primary.opacity(0.3) }
         let question = questions[currentQuestionIndex]
         
         if index == question.correctOptionIndex {
@@ -194,15 +240,17 @@ struct TestSessionView: View {
         } else if index == selected {
             return .red
         }
-        return Color.gray.opacity(0.1)
+        return Color.primary.opacity(0.3)
     }
     
     private func buttonForegroundColor(for index: Int) -> Color {
         guard let selected = selectedOption else { return .primary }
         let question = questions[currentQuestionIndex]
         
-        if index == question.correctOptionIndex || index == selected {
-            return .white
+        if index == question.correctOptionIndex {
+            return .green
+        } else if index == selected {
+            return .red
         }
         return .primary
     }
