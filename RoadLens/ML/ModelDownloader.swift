@@ -26,10 +26,10 @@ class ModelDownloader: ObservableObject {
 
     private let zipURL = URL(
         string:
-            "https://github.com/alienmasterr/RoadLens/releases/download/v1.0/RoadTestGenerator.mlpackage.zip"
+            "https://github.com/alienmasterr/RoadLens/releases/download/v2.0/RoadTestGenerator2.mlpackage.zip"
     )!
     private let expectedSHA256 =
-        "bd9fa3d0ac81e630d9ab75af7ceea756541227eb710f17bc08f83af78f8bb50d"
+        "28a682c41964349eed4d06aade3d99101e4ac584f88f805fc4b0b8e3f03df829"
 
     private var progressObservation: NSKeyValueObservation?
 

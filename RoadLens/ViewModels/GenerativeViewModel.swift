@@ -86,11 +86,19 @@ class GenerativeViewModel: ObservableObject {
                 }
                 
                 let engine = LLMEngine(model: model, tokenizer: tok)
-                let prompt = "Знак: \(signLabel)\n<|completion|>\n"
+                let prompt = "Знак: \(signLabel)\n<|completion|>\nEXPLANATION:"
                 let result = try engine.generate(prompt: prompt, maxNewTokens: 150)
                 
                 let raw = result.replacingOccurrences(of: "<|completion|>", with: "")
-                let finalExplanation = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                var finalExplanation = raw.replacingOccurrences(of: prompt, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+                if let questionRange = finalExplanation.range(of: "QUESTION:") {
+                    finalExplanation = String(finalExplanation[..<questionRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                
+                if finalExplanation.isEmpty {
+                    finalExplanation = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
                 
                 DispatchQueue.main.async {
                     self.signExplanation = finalExplanation

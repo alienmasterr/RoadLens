@@ -54,7 +54,7 @@ class LLMEngine {
                 logitValues[i] = logits[lastTokenOffset + i].floatValue
             }
 
-            let nextTokenId = sampleLogits(logitValues, temperature: 0.7, topK: 10)
+            let nextTokenId = sampleLogits(logitValues, temperature: 0.1, topK: 10)
 
             print("LMSys: згенеровано токен ID \(nextTokenId)")
 
